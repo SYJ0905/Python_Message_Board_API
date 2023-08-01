@@ -1,5 +1,3 @@
-from datetime import datetime
-
 # MySQL 套件
 import sqlalchemy as sa
 from sqlalchemy.orm import declarative_base
@@ -97,10 +95,10 @@ session = Session()
 ########################################################################################
 
 # 數據數量
-c1 = session.query(User).filter(User.username == "test1").count()
-print("c1 =>", c1)
+# c1 = session.query(User).filter(User.username == "test1").count()
+# print("c1 =>", c1)
 
 # 取值不重複
-c2 = session.query(sa.distinct(User.username)).count()
+# c2 = session.query(sa.distinct(User.username)).count()
 
 ########################################################################################

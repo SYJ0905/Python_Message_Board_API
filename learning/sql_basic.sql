@@ -4,7 +4,7 @@
 SHOW databases;
 
 -- 建立資料庫
-CREATE DATABASES <name>;
+CREATE DATABASE <name>;
 
 -- 刪除資料庫
 DROP DATABASE <name>;

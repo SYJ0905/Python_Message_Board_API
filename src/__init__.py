@@ -1,23 +1,51 @@
 from flask import Flask
 from flask_restful import Api
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
-from module.resource.user import User, Users
-from module.resource.hello import Helloworld
+from src.module.resource.user import User, Users
+from src.module.resource.message import Messages, MessageBoard
+from src.module.resource.hello import Helloworld
 
-app = Flask(__name__)
-api = Api(app)
+db = SQLAlchemy()
+
+from src.model.user import User as UserModel
+from src.model.messages import Message as MessageModel
+from src.model.messages import Reply as ReplyModel
 
 
-api.add_resource(Helloworld, "/")
+def create_app():
+    app = Flask(__name__)
+    api = Api(app)
 
-api.add_resource(Users, "/users", endpoint="users_list")
-api.add_resource(User, "/user/<string:user_id>", endpoint="user_detail")
-api.add_resource(User, "/user", endpoint="create_user")
-api.add_resource(User, "/user/<string:user_id>", endpoint="update_user")
-api.add_resource(User, "/user/<string:user_id>", endpoint="delete_user")
+    app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ] = "mysql+pymysql://root:MySQL0905@localhost:3306/demo"
+    db.init_app(app)
+    migrate = Migrate(app, db)
 
-if __name__ == "__main__":
-    app.run()
+    api.add_resource(Helloworld, "/")
+
+    api.add_resource(Users, "/users", endpoint="users_list")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="user_detail")
+    api.add_resource(User, "/user", endpoint="create_user")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="update_user")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="delete_user")
+
+    api.add_resource(Messages, "/messages", endpoint="messages_list")
+    api.add_resource(MessageBoard, "/message", endpoint="create_message")
+    api.add_resource(MessageBoard, "/message/<string:id>", endpoint="update_message")
+    api.add_resource(MessageBoard, "/message/<string:id>", endpoint="delete_message")
+
+    return app
+
+
+# $env:FLASK_APP="src:create_app()"
+# flask run
+# flask db init
+# flask db migrate
+# flask db upgrade
+
 
 # 專業級或者是服務級網路留言板具備功能:
 # 註冊和登入系統：使用者可以創建帳戶並透過登入進入留言板。這樣可以管理用戶，避免未授權訪問和確保留言的來源。

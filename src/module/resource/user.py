@@ -3,20 +3,20 @@ from flask import request
 from flask_restful import Resource, reqparse
 
 user_list = [
-    {
-        "user_id": str(uuid.uuid4()).replace("-", ""),
-        "username": "Cloud",
-        "age": 29,
-        "password": "Cloud0905",
-        "email": "cloud_0701@reddoor.com.tw",
-    },
-    {
-        "user_id": str(uuid.uuid4()).replace("-", ""),
-        "username": "Lilias",
-        "age": 30,
-        "password": "Lilias0905",
-        "email": "lilias_0701@reddoor.com.tw",
-    },
+    # {
+    #     "user_id": str(uuid.uuid4()).replace("-", ""),
+    #     "username": "Cloud",
+    #     "age": 29,
+    #     "password": "Cloud0905",
+    #     "email": "cloud_0701@reddoor.com.tw",
+    # },
+    # {
+    #     "user_id": str(uuid.uuid4()).replace("-", ""),
+    #     "username": "Lilias",
+    #     "age": 30,
+    #     "password": "Lilias0905",
+    #     "email": "lilias_0701@reddoor.com.tw",
+    # },
 ]
 
 
