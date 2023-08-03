@@ -1,23 +1,12 @@
 import uuid
-from flask import request
+
 from flask_restful import Resource, reqparse
 
-user_list = [
-    # {
-    #     "user_id": str(uuid.uuid4()).replace("-", ""),
-    #     "username": "Cloud",
-    #     "age": 29,
-    #     "password": "Cloud0905",
-    #     "email": "cloud_0701@reddoor.com.tw",
-    # },
-    # {
-    #     "user_id": str(uuid.uuid4()).replace("-", ""),
-    #     "username": "Lilias",
-    #     "age": 30,
-    #     "password": "Lilias0905",
-    #     "email": "lilias_0701@reddoor.com.tw",
-    # },
-]
+from flask_jwt_extended import jwt_required
+
+from src import db
+
+from src.model.user import User as UserModel
 
 
 def min_length_str(min_length):
@@ -35,8 +24,30 @@ def min_length_str(min_length):
 
 
 class Users(Resource):
+    @jwt_required()
     def get(self):
-        return {"code": "1", "data": user_list, "message": "查詢所有用戶成功"}
+        # token = request.headers.get("Authorization")
+        # try:
+        #     jwt.decode(token, current_app.config.get("SECRET_KEY"), algorithms="HS256")
+        # except jwt.ExpiredSignatureError:
+        #     return {
+        #         "code": "0",
+        #         "data": None,
+        #         "message": "Expired token. Please login to get new token",
+        #     }
+        # except jwt.InvalidTokenError:
+        #     return {
+        #         "code": "0",
+        #         "data": None,
+        #         "message": "Invalid token. Please register or login",
+        #     }
+
+        user_list = [user.to_dict() for user in db.session.query(UserModel).all()]
+        return {
+            "code": "1",
+            "data": user_list,
+            "message": "查詢所有用戶成功",
+        }
 
 
 class User(Resource):
@@ -48,46 +59,90 @@ class User(Resource):
         "password", type=min_length_str(5), required=True, help="password: {error_msg}"
     )
 
-    def get(self, user_id):
-        for user in user_list:
-            if user["user_id"] == user_id:
-                return {"code": "1", "data": user, "message": "查詢用戶資料成功"}
+    @jwt_required()
+    def get(self, id):
+        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+
+        if user:
+            return {"code": "1", "data": user.to_dict(), "message": "查詢用戶資料成功"}
+
         return {"code": "0", "data": None, "message": "用戶不存在"}
 
+    @jwt_required()
     def post(self):
         data = User.parser.parse_args()
-        new_user = request.get_json()
-        email = data.get("email")
+        email = data.email
 
-        # 检查用户名是否已存在
-        for user in user_list:
-            if user["email"] == email:
-                return {"code": "0", "data": user_list, "message": "用戶已存在"}
+        user = db.session.query(UserModel).filter(UserModel.email == email).first()
 
-        new_user["user_id"] = str(uuid.uuid4()).replace("-", "")
-        user_list.append(new_user)
-        return {"code": "1", "data": user_list, "message": "新增用戶成功"}
+        if user:
+            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            return {
+                "code": "0",
+                "data": user_list,
+                "message": "用戶已存在",
+            }
 
-    def put(self, user_id):
-        temp_user = None
-        for user in user_list:
-            if user["user_id"] == user_id:
-                data = User.parser.parse_args()
-                temp_user = request.get_json()
-                user["age"] = data.get("age")
-                user["password"] = data.get("password")
-                user["email"] = data.get("email")
+        user = UserModel(
+            id=str(uuid.uuid4()).replace("-", ""),
+            username=data.username,
+            age=data.age,
+            email=data.email,
+        )
+        user.set_password(data.password)
 
-                return {"code": "1", "data": user_list, "message": "更新用戶成功"}
-        if not temp_user:
-            return {"code": "0", "data": user_list, "message": "用戶不存在"}
+        db.session.add(user)
+        db.session.commit()
 
-    def delete(self, user_id):
-        temp_user = None
-        for user in user_list:
-            if user["user_id"] == user_id:
-                user_list.remove(user)
-                return {"code": "1", "data": user_list, "message": "刪除用戶成功"}
+        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        return {
+            "code": "1",
+            "data": user_list,
+            "message": "新增用戶成功",
+        }
 
-        if not temp_user:
-            return {"code": "0", "data": user_list, "message": "用戶不存在"}
+    @jwt_required()
+    def put(self, id):
+        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+
+        if user:
+            data = User.parser.parse_args()
+            user.age = data.age
+            user.email = data.email
+            db.session.commit()
+
+            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            return {
+                "code": "1",
+                "data": user_list,
+                "message": "更新用戶成功",
+            }
+
+        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        return {
+            "code": "0",
+            "data": user_list,
+            "message": "用戶不存在",
+        }
+
+    @jwt_required()
+    def delete(self, id):
+        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+
+        if user:
+            db.session.delete(user)
+            db.session.commit()
+
+            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            return {
+                "code": "1",
+                "data": user_list,
+                "message": "刪除用戶成功",
+            }
+
+        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        return {
+            "code": "0",
+            "data": user_list,
+            "message": "用戶不存在",
+        }

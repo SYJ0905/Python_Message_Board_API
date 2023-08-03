@@ -2,76 +2,84 @@ import uuid
 from flask import request
 from flask_restful import Resource
 
-# MySQL 套件
-# import sqlalchemy as sa
-# from sqlalchemy.orm import declarative_base, relationship
+from flask_jwt_extended import jwt_required
 
-# BASE = declarative_base()
+from src import db
 
-messages = [
-    # {
-    #     "id": str(uuid.uuid4()).replace("-", ""),
-    #     "content": "content",
-    #     "replies": [
-    #         {
-    #             "id": str(uuid.uuid4()).replace("-", ""),
-    #             "content": "content",
-    #         }
-    #     ],
-    # }
-]
-
-
-# class Message(BASE):
-#     __tablename__ = "message"
-
-#     id = sa.Column(sa.String(36), primary_key=True)
-#     content = sa.Column(sa.String(200), nullable=False)
-#     create_at = sa.Column(sa.DateTime, server_default=sa.func.now())
-#     replies = relationship("Reply", back_populates="message")
-
-
-# class Reply(BASE):
-#     __tablename__ = "reply"
-
-#     id = sa.Column(sa.String(36), primary_key=True)
-#     content = sa.Column(sa.String(200), nullable=False)
-#     create_at = sa.Column(sa.DateTime, server_default=sa.func.now())
-#     message_id = sa.Column(sa.String(36), sa.ForeignKey("message.id"))
-#     message = relationship("Message", back_populates="replies")
+from src.model.messages import Message as MessageModel
+from src.model.messages import Reply as ReplyModel
 
 
 class Messages(Resource):
+    @jwt_required()
     def get(self):
-        return {"code": "1", "data": messages, "message": "查詢所有留言成功"}
+        message_list = [
+            message.to_dict() for message in db.session.query(MessageModel).all()
+        ]
+        return {"code": "1", "data": message_list, "message": "查詢所有留言成功"}
 
 
 class MessageBoard(Resource):
+    @jwt_required()
     def post(self):
         new_message = request.get_json()
+        print("new_message =>", new_message)
 
-        new_message["id"] = str(uuid.uuid4()).replace("-", "")
-        # new_message["replies"] = []
-        messages.append(new_message)
-        return {"code": "1", "data": messages, "message": "新增留言成功"}
+        message = MessageModel(
+            message_id=str(uuid.uuid4()).replace("-", ""),
+            content=new_message.get("content"),
+        )
 
-    def put(self, id):
-        temp_message = None
-        for message in messages:
-            if message["id"] == id:
-                temp_message = request.get_json()
-                message["content"] = temp_message.get("content")
+        db.session.add(message)
+        db.session.commit()
 
-                return {"code": "1", "data": messages, "message": "更新留言成功"}
-        if not temp_message:
-            return {"code": "0", "data": messages, "message": "留言不存在"}
+        message_list = [
+            message.to_dict() for message in db.session.query(MessageModel).all()
+        ]
 
-    def delete(self, id):
-        temp_message = None
-        for message in messages:
-            if message["id"] == id:
-                messages.remove(message)
-                return {"code": "1", "data": messages, "message": "刪除留言成功"}
+        return {"code": "1", "data": message_list, "message": "新增留言成功"}
 
-        if not temp_message:
-            return {"code": "0", "data": messages, "message": "留言不存在"}
+    @jwt_required()
+    def put(self, message_id):
+        message = (
+            db.session.query(MessageModel)
+            .filter(MessageModel.message_id == message_id)
+            .first()
+        )
+
+        if message:
+            temp_message = request.get_json()
+            message.content = temp_message.get("content")
+            db.session.commit()
+
+            message_list = [
+                message.to_dict() for message in db.session.query(MessageModel).all()
+            ]
+            return {"code": "1", "data": message_list, "message": "更新留言成功"}
+
+        message_list = [
+            message.to_dict() for message in db.session.query(MessageModel).all()
+        ]
+        return {"code": "0", "data": message_list, "message": "留言不存在"}
+
+    @jwt_required()
+    def delete(self, message_id):
+        message = (
+            db.session.query(MessageModel)
+            .filter(MessageModel.message_id == message_id)
+            .first()
+        )
+
+        if message:
+            db.session.delete(message)
+            db.session.commit()
+
+            message_list = [
+                message.to_dict() for message in db.session.query(MessageModel).all()
+            ]
+            return {"code": "1", "data": message_list, "message": "刪除留言成功"}
+
+        message_list = [
+            message.to_dict() for message in db.session.query(MessageModel).all()
+        ]
+        return {"code": "0", "data": message_list, "message": "留言不存在"}

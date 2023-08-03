@@ -3,39 +3,78 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-from src.module.resource.user import User, Users
-from src.module.resource.message import Messages, MessageBoard
-from src.module.resource.hello import Helloworld
+from flask_jwt_extended import JWTManager
 
 db = SQLAlchemy()
 
-from src.model.user import User as UserModel
-from src.model.messages import Message as MessageModel
-from src.model.messages import Reply as ReplyModel
+from src.module.resource.user import User, Users
+from src.module.resource.message import Messages, MessageBoard
+
+from src.module.resource.auth import Login
+from src.module.resource.hello import Helloworld
+
+from src.config import Config
+
+jwt = JWTManager()
+
+
+@jwt.unauthorized_loader
+def unauthorized_callback(callback):
+    return {
+        "code": "0",
+        "data": None,
+        "message": "Missing Authorization Header",
+    }, 401
+
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return {
+        "code": "0",
+        "data": None,
+        "message": "Token has expired",
+    }, 401
+
+
+@jwt.invalid_token_loader
+def invalid_token_callback(jwt_header):
+    return {
+        "code": "0",
+        "data": None,
+        "message": "Invalid token",
+    }, 422
 
 
 def create_app():
     app = Flask(__name__)
     api = Api(app)
 
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = "mysql+pymysql://root:MySQL0905@localhost:3306/demo"
+    app.config.from_object(Config)
+    app.config["PROPAGATE_EXCEPTIONS"] = True
+
     db.init_app(app)
     migrate = Migrate(app, db)
+
+    jwt.init_app(app)
 
     api.add_resource(Helloworld, "/")
 
     api.add_resource(Users, "/users", endpoint="users_list")
-    api.add_resource(User, "/user/<string:user_id>", endpoint="user_detail")
+    api.add_resource(User, "/user/<string:id>", endpoint="user_detail")
     api.add_resource(User, "/user", endpoint="create_user")
-    api.add_resource(User, "/user/<string:user_id>", endpoint="update_user")
-    api.add_resource(User, "/user/<string:user_id>", endpoint="delete_user")
+    api.add_resource(User, "/user/<string:id>", endpoint="update_user")
+    api.add_resource(User, "/user/<string:id>", endpoint="delete_user")
 
     api.add_resource(Messages, "/messages", endpoint="messages_list")
     api.add_resource(MessageBoard, "/message", endpoint="create_message")
-    api.add_resource(MessageBoard, "/message/<string:id>", endpoint="update_message")
-    api.add_resource(MessageBoard, "/message/<string:id>", endpoint="delete_message")
+    api.add_resource(
+        MessageBoard, "/message/<string:message_id>", endpoint="update_message"
+    )
+    api.add_resource(
+        MessageBoard, "/message/<string:message_id>", endpoint="delete_message"
+    )
+
+    api.add_resource(Login, "/auth/login", endpoint="login")
 
     return app
 
