@@ -10,8 +10,8 @@ class User(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(64), unique=True)
 
-    def __repr__(self):
-        return f"id={self.id}, username={self.username}, email={self.email}, password={self.password}"
+    # def __repr__(self):
+    #     return f"id={self.id}, username={self.username}, email={self.email}, password={self.password}"
 
     def to_dict(self):
         return {
@@ -28,35 +28,25 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
-    # def generate_token(self):
-    #     try:
-    #         payload = {
-    #             "exp": datetime.utcnow() + timedelta(minutes=5),
-    #             "iat": datetime.utcnow(),
-    #             "sub": self.email,
-    #         }
-    #         jwt_token = jwt.encode(
-    #             payload, current_app.config.get("SECRET_KEY"), algorithm="HS256"
-    #         )
-    #         return jwt_token
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
 
-    #     except Exception as e:
-    #         return str(e)
+    def update(self):
+        db.session.commit()
 
-    # @staticmethod
-    # def authenticate(email, password):
-    #     print("email =>", email)
-    #     print("password =>", password)
-    #     user = db.session.query(User).filter(User.email == email).first()
-    #     if user:
-    #         if user.check_password(password):
-    #             print(user)
-    #             return user
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
-    # @staticmethod
-    # def identity(payload):
-    #     print("payload =>", payload)
-    #     id = payload["identity"]
-    #     user = db.session.query(User).filter(User.id == id).first()
-    #     print("user =>", user)
-    #     return user
+    @staticmethod
+    def get_user_list():
+        return db.session.query(User).all()
+
+    @staticmethod
+    def get_by_user_id(id):
+        return db.session.query(User).filter(User.id == id).first()
+
+    @staticmethod
+    def get_by_user_email(email):
+        return db.session.query(User).filter(User.email == email).first()

@@ -4,8 +4,6 @@ from flask_restful import Resource, reqparse
 
 from flask_jwt_extended import jwt_required
 
-from src import db
-
 from src.model.user import User as UserModel
 
 
@@ -26,23 +24,7 @@ def min_length_str(min_length):
 class Users(Resource):
     @jwt_required()
     def get(self):
-        # token = request.headers.get("Authorization")
-        # try:
-        #     jwt.decode(token, current_app.config.get("SECRET_KEY"), algorithms="HS256")
-        # except jwt.ExpiredSignatureError:
-        #     return {
-        #         "code": "0",
-        #         "data": None,
-        #         "message": "Expired token. Please login to get new token",
-        #     }
-        # except jwt.InvalidTokenError:
-        #     return {
-        #         "code": "0",
-        #         "data": None,
-        #         "message": "Invalid token. Please register or login",
-        #     }
-
-        user_list = [user.to_dict() for user in db.session.query(UserModel).all()]
+        user_list = [user.to_dict() for user in UserModel.get_user_list()]
         return {
             "code": "1",
             "data": user_list,
@@ -61,7 +43,7 @@ class User(Resource):
 
     @jwt_required()
     def get(self, id):
-        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+        user = UserModel.get_by_user_id(id)
 
         if user:
             return {"code": "1", "data": user.to_dict(), "message": "查詢用戶資料成功"}
@@ -73,10 +55,10 @@ class User(Resource):
         data = User.parser.parse_args()
         email = data.email
 
-        user = db.session.query(UserModel).filter(UserModel.email == email).first()
+        user = UserModel.get_by_user_email(email)
 
         if user:
-            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            user_list = [u.to_dict() for u in UserModel.get_user_list()]
             return {
                 "code": "0",
                 "data": user_list,
@@ -90,11 +72,9 @@ class User(Resource):
             email=data.email,
         )
         user.set_password(data.password)
+        user.add()
 
-        db.session.add(user)
-        db.session.commit()
-
-        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        user_list = [u.to_dict() for u in UserModel.get_user_list()]
         return {
             "code": "1",
             "data": user_list,
@@ -103,22 +83,22 @@ class User(Resource):
 
     @jwt_required()
     def put(self, id):
-        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+        user = UserModel.get_by_user_id(id)
 
         if user:
             data = User.parser.parse_args()
             user.age = data.age
             user.email = data.email
-            db.session.commit()
+            user.update()
 
-            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            user_list = [u.to_dict() for u in UserModel.get_user_list()]
             return {
                 "code": "1",
                 "data": user_list,
                 "message": "更新用戶成功",
             }
 
-        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        user_list = [u.to_dict() for u in UserModel.get_user_list()]
         return {
             "code": "0",
             "data": user_list,
@@ -127,20 +107,18 @@ class User(Resource):
 
     @jwt_required()
     def delete(self, id):
-        user = db.session.query(UserModel).filter(UserModel.id == id).first()
+        user = UserModel.get_by_user_id(id)
 
         if user:
-            db.session.delete(user)
-            db.session.commit()
-
-            user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+            user.delete()
+            user_list = [u.to_dict() for u in UserModel.get_user_list()]
             return {
                 "code": "1",
                 "data": user_list,
                 "message": "刪除用戶成功",
             }
 
-        user_list = [u.to_dict() for u in db.session.query(UserModel).all()]
+        user_list = [u.to_dict() for u in UserModel.get_user_list()]
         return {
             "code": "0",
             "data": user_list,

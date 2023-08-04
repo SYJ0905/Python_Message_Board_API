@@ -1,8 +1,6 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token
 
-from src import db
-
 from src.model.user import User as UserModel
 
 
@@ -32,7 +30,7 @@ class Login(Resource):
 
     def post(self):
         data = Login.parser.parse_args()
-        user = db.session.query(UserModel).filter(UserModel.email == data.email).first()
+        user = UserModel.get_by_user_email(data.email)
         if user:
             if not user.check_password(data.password):
                 return {
