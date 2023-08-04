@@ -4,8 +4,6 @@ from flask_restful import Resource
 
 from flask_jwt_extended import jwt_required
 
-from src import db
-
 from src.model.messages import Message as MessageModel
 from src.model.messages import Reply as ReplyModel
 
@@ -14,7 +12,7 @@ class Messages(Resource):
     @jwt_required()
     def get(self):
         message_list = [
-            message.to_dict() for message in db.session.query(MessageModel).all()
+            message.to_dict() for message in MessageModel.get_message_list()
         ]
         return {"code": "1", "data": message_list, "message": "查詢所有留言成功"}
 
@@ -30,56 +28,46 @@ class MessageBoard(Resource):
             content=new_message.get("content"),
         )
 
-        db.session.add(message)
-        db.session.commit()
+        message.add()
 
         message_list = [
-            message.to_dict() for message in db.session.query(MessageModel).all()
+            message.to_dict() for message in MessageModel.get_message_list()
         ]
 
         return {"code": "1", "data": message_list, "message": "新增留言成功"}
 
     @jwt_required()
     def put(self, message_id):
-        message = (
-            db.session.query(MessageModel)
-            .filter(MessageModel.message_id == message_id)
-            .first()
-        )
+        message = MessageModel.get_by_message_id(message_id)
 
         if message:
             temp_message = request.get_json()
             message.content = temp_message.get("content")
-            db.session.commit()
+            message.update()
 
             message_list = [
-                message.to_dict() for message in db.session.query(MessageModel).all()
+                message.to_dict() for message in MessageModel.get_message_list()
             ]
             return {"code": "1", "data": message_list, "message": "更新留言成功"}
 
         message_list = [
-            message.to_dict() for message in db.session.query(MessageModel).all()
+            message.to_dict() for message in MessageModel.get_message_list()
         ]
         return {"code": "0", "data": message_list, "message": "留言不存在"}
 
     @jwt_required()
     def delete(self, message_id):
-        message = (
-            db.session.query(MessageModel)
-            .filter(MessageModel.message_id == message_id)
-            .first()
-        )
+        message = MessageModel.get_by_message_id(message_id)
 
         if message:
-            db.session.delete(message)
-            db.session.commit()
+            message.delete()
 
             message_list = [
-                message.to_dict() for message in db.session.query(MessageModel).all()
+                message.to_dict() for message in MessageModel.get_message_list()
             ]
             return {"code": "1", "data": message_list, "message": "刪除留言成功"}
 
         message_list = [
-            message.to_dict() for message in db.session.query(MessageModel).all()
+            message.to_dict() for message in MessageModel.get_message_list()
         ]
         return {"code": "0", "data": message_list, "message": "留言不存在"}

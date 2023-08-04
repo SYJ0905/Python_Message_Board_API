@@ -10,9 +10,6 @@ class User(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(64), unique=True)
 
-    # def __repr__(self):
-    #     return f"id={self.id}, username={self.username}, email={self.email}, password={self.password}"
-
     def to_dict(self):
         return {
             "id": self.id,

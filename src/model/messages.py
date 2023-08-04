@@ -16,6 +16,27 @@ class Message(db.Model):
             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_message_list():
+        return db.session.query(Message).all()
+
+    @staticmethod
+    def get_by_message_id(message_id):
+        return (
+            db.session.query(Message).filter(Message.message_id == message_id).first()
+        )
+
 
 class Reply(db.Model):
     reply_id = db.Column(db.String(36), primary_key=True)
