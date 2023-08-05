@@ -94,12 +94,13 @@ class ReplyBoard(Resource):
         try:
             new_reply = request.get_json()
             message_id = new_reply.get("message_id")
+            message = MessageModel.get_by_message_id(message_id)
 
             if not message_id:
                 return {"code": "0", "data": None, "message": "請提供 message_id"}
 
-            if not MessageModel.exists(message_id):
-                return {"code": "0", "data": None, "message": "指定的 message_id 不存在"}
+            if not message:
+                return {"code": "0", "data": None, "message": "指定的 message 不存在"}
 
             reply = ReplyModel(
                 reply_id=str(uuid.uuid4()).replace("-", ""),
