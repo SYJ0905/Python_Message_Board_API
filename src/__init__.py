@@ -8,7 +8,7 @@ from flask_jwt_extended import JWTManager
 db = SQLAlchemy()
 
 from src.module.resource.user import User, Users
-from src.module.resource.message import Messages, MessageBoard
+from src.module.resource.message import Messages, MessageBoard, ReplyBoard
 
 from src.module.resource.auth import Login
 from src.module.resource.hello import Helloworld
@@ -73,6 +73,10 @@ def create_app():
     api.add_resource(
         MessageBoard, "/message/<string:message_id>", endpoint="delete_message"
     )
+
+    api.add_resource(ReplyBoard, "/reply", endpoint="create_reply")
+    api.add_resource(ReplyBoard, "/reply/<string:reply_id>", endpoint="update_reply")
+    api.add_resource(ReplyBoard, "/reply/<string:reply_id>", endpoint="delete_reply")
 
     api.add_resource(Login, "/auth/login", endpoint="login")
 

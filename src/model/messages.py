@@ -1,6 +1,7 @@
-from src import db
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
-# from sqlalchemy.orm import relationship
+from src import db
 
 
 class Message(db.Model):
@@ -8,7 +9,9 @@ class Message(db.Model):
     content = db.Column(db.String(200), nullable=False)
     create_account = db.Column(db.String(64))
     create_at = db.Column(db.DateTime, server_default=db.func.now())
-    # replies = relationship("Reply", back_populates="message")
+    replies = relationship(
+        "Reply", back_populates="message", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -16,6 +19,7 @@ class Message(db.Model):
             "content": self.content,
             "create_account": self.create_account,
             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "replies": [reply.to_dict() for reply in self.replies],
         }
 
     def add(self):
@@ -43,15 +47,38 @@ class Message(db.Model):
 class Reply(db.Model):
     reply_id = db.Column(db.String(36), primary_key=True)
     content = db.Column(db.String(200), nullable=False)
+    create_account = db.Column(db.String(64))
     create_at = db.Column(db.DateTime, server_default=db.func.now())
-    message_id = db.Column(db.String(36), db.ForeignKey("message.message_id"))
+    message_id = db.Column(
+        db.String(36), ForeignKey("message.message_id", ondelete="CASCADE")
+    )
+    message = relationship("Message", back_populates="replies")
 
     def to_dict(self):
         return {
             "reply_id": self.reply_id,
             "content": self.content,
+            "create_account": self.create_account,
             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
             "message_id": self.message_id,
         }
 
-    # message = relationship("Message", back_populates="replies")
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_reply_list_by_message_id(message_id):
+        message = Message.get_by_message_id(message_id)
+        return message.replies
+
+    @staticmethod
+    def get_by_reply_id(reply_id):
+        return db.session.query(Reply).filter(Reply.reply_id == reply_id).first()
