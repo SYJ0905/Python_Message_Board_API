@@ -1,9 +1,10 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from src import db
+from src.model.base import Base
 
 
-class User(db.Model):
+class User(Base):
     id = db.Column(db.String(64), primary_key=True)
     username = db.Column(db.String(64), unique=True)
     age = db.Column(db.Integer)
@@ -24,17 +25,6 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
-    def add(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
 
     @staticmethod
     def get_user_list():

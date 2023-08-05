@@ -2,9 +2,10 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 from src import db
+from src.model.base import Base
 
 
-class Message(db.Model):
+class Message(Base):
     message_id = db.Column(db.String(36), primary_key=True)
     content = db.Column(db.String(200), nullable=False)
     create_account = db.Column(db.String(64))
@@ -22,17 +23,6 @@ class Message(db.Model):
             "replies": [reply.to_dict() for reply in self.replies],
         }
 
-    def add(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
     @staticmethod
     def get_message_list():
         return db.session.query(Message).all()
@@ -44,7 +34,7 @@ class Message(db.Model):
         )
 
 
-class Reply(db.Model):
+class Reply(Base):
     reply_id = db.Column(db.String(36), primary_key=True)
     content = db.Column(db.String(200), nullable=False)
     create_account = db.Column(db.String(64))
@@ -62,17 +52,6 @@ class Reply(db.Model):
             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
             "message_id": self.message_id,
         }
-
-    def add(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
 
     @staticmethod
     def get_reply_list_by_message_id(message_id):
