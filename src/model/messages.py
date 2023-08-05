@@ -6,6 +6,7 @@ from src import db
 class Message(db.Model):
     message_id = db.Column(db.String(36), primary_key=True)
     content = db.Column(db.String(200), nullable=False)
+    create_account = db.Column(db.String(64))
     create_at = db.Column(db.DateTime, server_default=db.func.now())
     # replies = relationship("Reply", back_populates="message")
 
@@ -13,6 +14,7 @@ class Message(db.Model):
         return {
             "message_id": self.message_id,
             "content": self.content,
+            "create_account": self.create_account,
             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
 

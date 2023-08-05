@@ -50,7 +50,7 @@ class User(Resource):
 
         return {"code": "0", "data": None, "message": "用戶不存在"}
 
-    @jwt_required()
+    # @jwt_required()
     def post(self):
         data = User.parser.parse_args()
         email = data.email
