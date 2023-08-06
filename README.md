@@ -15,7 +15,7 @@ set database url and app
 $env:DATABASE_URL="mysql+pymysql://root:MySQL0905@localhost:3306/message_board"
 $env:FLASK_APP="src:create_app()"
 
-### Mac
+### Unix
 export DATABASE_URL=mysql+pymysql://root:MySQL0905@localhost:3306/message_board
 export FLASK_APP="src:create_app()"
 ```
@@ -65,7 +65,7 @@ set database url and app
 $env:DATABASE_URL="mysql+pymysql://root:MySQL0905@localhost:3306/message_board"
 $env:FLASK_APP="src:create_app()"
 
-### Mac
+### Unix
 
 export DATABASE_URL=mysql+pymysql://root:MySQL0905@localhost:3306/message_board
 export FLASK_APP="src:create_app()"
