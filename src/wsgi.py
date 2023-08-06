@@ -7,5 +7,5 @@ from src import create_app, db
 
 
 application = create_app(config_name="production")
-with application.app__context():
-db.create_all()
+with application.app_context():
+    db.create_all()
