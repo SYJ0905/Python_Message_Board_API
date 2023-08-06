@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -47,6 +48,7 @@ def invalid_token_callback(jwt_header):
 
 def create_app(config_name="develop"):
     app = Flask(__name__)
+    CORS(app)
     api = Api(app)
 
     app.config.from_object(app_config[config_name])
