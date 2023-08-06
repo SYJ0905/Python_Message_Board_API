@@ -13,7 +13,7 @@ from src.module.resource.message import Messages, MessageBoard, ReplyBoard
 from src.module.resource.auth import Login
 from src.module.resource.hello import Helloworld
 
-from src.config import Config
+from src.config import app_config
 
 jwt = JWTManager()
 
@@ -45,11 +45,11 @@ def invalid_token_callback(jwt_header):
     }, 422
 
 
-def create_app():
+def create_app(config_name="develop"):
     app = Flask(__name__)
     api = Api(app)
 
-    app.config.from_object(Config)
+    app.config.from_object(app_config[config_name])
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
     db.init_app(app)
@@ -83,6 +83,7 @@ def create_app():
     return app
 
 
+# $env:DATABASE_URL="mysql+pymysql://root:MySQL0905@localhost:3306/message_board"
 # $env:FLASK_APP="src:create_app()"
 # flask run
 # flask db init
