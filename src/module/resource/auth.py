@@ -2,6 +2,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import create_access_token
 
 from src.model.user import User as UserModel
+from src.model.user import Password as PasswordModel
 
 
 def min_length_str(min_length):
@@ -32,7 +33,8 @@ class Login(Resource):
         data = Login.parser.parse_args()
         user = UserModel.get_by_user_email(data.email)
         if user:
-            if not user.check_password(data.password):
+            password_record = PasswordModel.get_by_user_id(user.user_id)
+            if password_record and not password_record.check_password(data.password):
                 return {
                     "code": "0",
                     "data": None,

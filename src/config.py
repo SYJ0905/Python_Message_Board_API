@@ -13,9 +13,9 @@ class TestingConfig(Config):
 
 
 class DevelopConfig(Config):
-    # SQLALCHEMY_DATABASE_URI = (
-    #     "mysql+pymysql://root:MySQL0905@localhost:3306/message_board"
-    # )
+    SQLALCHEMY_DATABASE_URI = (
+        "mysql+pymysql://root:MySQL0905@localhost:3306/message_board"
+    )
     pass
 
 

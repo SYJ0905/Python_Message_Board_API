@@ -62,10 +62,10 @@ def create_app(config_name="develop"):
     api.add_resource(Helloworld, "/")
 
     api.add_resource(Users, "/users", endpoint="users_list")
-    api.add_resource(User, "/user/<string:id>", endpoint="user_detail")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="user_detail")
     api.add_resource(User, "/user", endpoint="create_user")
-    api.add_resource(User, "/user/<string:id>", endpoint="update_user")
-    api.add_resource(User, "/user/<string:id>", endpoint="delete_user")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="update_user")
+    api.add_resource(User, "/user/<string:user_id>", endpoint="delete_user")
 
     api.add_resource(Messages, "/messages", endpoint="messages_list")
     api.add_resource(MessageBoard, "/message", endpoint="create_message")

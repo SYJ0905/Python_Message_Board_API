@@ -5,6 +5,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required
 
 from src.model.user import User as UserModel
+from src.model.user import Password as PasswordModel
 
 
 def min_length_str(min_length):
@@ -42,8 +43,8 @@ class User(Resource):
     )
 
     @jwt_required()
-    def get(self, id):
-        user = UserModel.get_by_user_id(id)
+    def get(self, user_id):
+        user = UserModel.get_by_user_id(user_id)
 
         if user:
             return {"code": "1", "data": user.to_dict(), "message": "查詢用戶資料成功"}
@@ -66,13 +67,17 @@ class User(Resource):
             }
 
         user = UserModel(
-            id=str(uuid.uuid4()).replace("-", ""),
+            user_id=str(uuid.uuid4()).replace("-", ""),
             username=data.username,
             age=data.age,
             email=data.email,
         )
-        user.set_password(data.password)
+
+        password = PasswordModel(user_id=user.user_id)
+        password.set_password(data.password)
+
         user.add()
+        password.add()
 
         user_list = [u.to_dict() for u in UserModel.get_user_list()]
         return {
@@ -82,8 +87,8 @@ class User(Resource):
         }
 
     @jwt_required()
-    def put(self, id):
-        user = UserModel.get_by_user_id(id)
+    def put(self, user_id):
+        user = UserModel.get_by_user_id(user_id)
 
         if user:
             data = User.parser.parse_args()
@@ -106,8 +111,8 @@ class User(Resource):
         }
 
     @jwt_required()
-    def delete(self, id):
-        user = UserModel.get_by_user_id(id)
+    def delete(self, user_id):
+        user = UserModel.get_by_user_id(user_id)
 
         if user:
             user.delete()
